@@ -16,53 +16,57 @@ type Downloader interface {
 
 
 // Media Downloader
-func (m *Media) Download(folder, file string) error {
+func (m *Media) Download(folder, file string) (error, string) {
     switch m.MediaType {
     case "image":
-        err := downloadMedia(m.URL, path.Join(folder, file + ".jpg"))
+        err, f := downloadMedia(m.URL, folder, file, ".jpg")
         if err != nil {
-            return err
+            return err, f
         }
     case "video":
-        err := downloadMedia(m.URL, path.Join(folder, file + ".mp4"))
+        err, f := downloadMedia(m.URL, folder, file, ".mp4")
         if err != nil {
-            return err
+            return err, f
         }
     default:
         err := errors.New("InvalidMediaType")
         log.Println("[WARNING]:", err)
-        return err
+        return err, ""
     }
-    return errors.New("DownloadError")
+    return nil, f
 }
 
 // Image Downloader
-func downloadMedia(URL, path string) error{
-
+func downloadMedia(URL, folder, file, ext string) (error, string) {
     response, err := http.Get(URL)
     if err != nil {
-        return err
+        return err, URL
     }
+
+    if file  == "" {
+        file = path.Base(response.Request.URL.Path)
+    } else {
+        file = file + ext
+    }
+
+    path := path.Join(folder, file)
 
     defer response.Body.Close()
 
     if response.StatusCode != 200{
-        return errors.New(strconv.Itoa(response.StatusCode) + "HTTPError")
+        return errors.New(strconv.Itoa(response.StatusCode) + "HTTPError"), file
     }
 
-    file, err := os.Create(path)
+    openFile, err := os.Create(path)
     if err != nil {
-        return err
+        return err, file
     }
-    defer file.Close()
+    defer openFile.Close()
 
-    _, err = io.Copy(file, response.Body)
+    _, err = io.Copy(openFile, response.Body)
     if err != nil {
-        return err
+        return err, file
     }
 
-    return nil
+    return nil, file
 }
-
-// Video Downloader
-//func downloadVideo() {}
