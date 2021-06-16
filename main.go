@@ -18,11 +18,18 @@ var (
     highlights = flag.Bool("highlights", false, "Download User Highlights")
     stories = flag.Bool("stories", false, "Download User Stories")
     feed = flag.Bool("feed", false, "Download User Feed Post")
+
+    target *string
 )
 
 func main() {
     flag.Parse()
-    target := &flag.Args()[0]
+    if len(flag.Args()) > 0 {
+        target = &flag.Args()[0]
+    } else {
+        log.Println("Please provide target username") 
+        return
+    }
 
     // Waitgroup
     wg := &sync.WaitGroup{}
@@ -46,7 +53,7 @@ func main() {
     defer insta.InstaLogout()
     err = insta.SearchUser(*target)
     if err != nil {
-        log.Fatalln("User", target, "Not Found.\n", err)
+        log.Fatalln("User", *target, "Not Found.\n", err)
         return
     }
 
