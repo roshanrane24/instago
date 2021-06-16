@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 	"path"
-	"strconv"
+	//"strconv"
 	"sync"
 )
 
@@ -65,8 +65,11 @@ func (insta *Instagram) DownloadHighlights() error {
     }
 
     cwd, _ := os.Getwd()
-    highlightsRoot := path.Join(cwd, *insta.User,"Highlights")
-    CreateFolder(highlightsRoot)
+    highlightsRoot := path.Join(cwd, *&insta.SUser.Username,"Highlights")
+    err = CreateFolder(highlightsRoot)
+    if err != nil {
+        return err
+    }
 
     noHgls := len(insta.Highlights)
     log.Println("[Highlights]: Found", noHgls, "Highlights.")
@@ -78,15 +81,22 @@ func (insta *Instagram) DownloadHighlights() error {
         noMda := len(insta.Highlights[i].Media)
         log.Println("[Highlights]: Found", noMda, "Medias in", section)
 
-        CreateFolder(sectionRoot)
+        err = CreateFolder(sectionRoot)
+        if err != nil {
+            return err
+        }
 
         for is := range insta.Highlights[i].Media {
             wgM.Add(1)
             go func(is, i int, wgM *sync.WaitGroup) {
-                file := section + strconv.Itoa(is) + strconv.Itoa(i)
-                insta.Highlights[i].Media[is].Download(sectionRoot, file)
+                //file := section + strconv.Itoa(is + 1) + strconv.Itoa(i + 1)
+                file := ""
+                err, file = insta.Highlights[i].Media[is].Download(sectionRoot, file)
+                if err != nil {
+                    log.Println("[Highlights]", err, file)
+                }
                 wgM.Done()
-                log.Printf("[Highlights]:(%d/%d) Progress<%d/%d>", i, noHgls, is, noMda)
+                log.Printf("[Highlights]:(%d/%d) Progress<%d/%d>", i + 1, noHgls, is + 1, noMda)
             }(is, i, wgM)
         }
     }
