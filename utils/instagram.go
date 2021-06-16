@@ -2,8 +2,10 @@ package utils
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path"
+
 	"github.com/ahmdrz/goinsta/v2"
 	"github.com/tcnksm/go-input"
 )
@@ -20,9 +22,11 @@ type(
         inst *goinsta.Instagram
         SUser *goinsta.User
         Highlights []HighlightMedia
+        Stories *StoryMedia
+        Feed *FeedMedia
     }
 
-    Media struct {
+   Media struct {
         URL string
         MediaType string
     }
@@ -117,10 +121,19 @@ func loginError(err error, insta *goinsta.Instagram) (*goinsta.Instagram, error)
 
 func (insta *Instagram) SearchUser(username string) error {
     insta.SUser, err = insta.inst.Profiles.ByName(username)
+    if err != nil {
+        return err
+    } else {
+        log.Println("User", username, "Found.")
+        p := insta.checkPrivate()
+        if p {log.Println("User", username, "Has a Private Profile.")}
+    }
+
     wd, err := os.Getwd()
     if err != nil {
         return err
     }
+
     CreateFolder(path.Join(wd, insta.SUser.Username))
     return nil
 }
@@ -128,6 +141,25 @@ func (insta *Instagram) SearchUser(username string) error {
 
 
 // Profile Pic
-func (insta *Instagram) GetProfilePic() {
-    fmt.Println(insta.SUser.HdProfilePicURLInfo.URL)
+func (insta *Instagram) GetProfilePic() error {
+    profile := Media{
+        URL: insta.SUser.HdProfilePicURLInfo.URL,
+        MediaType: "image",
+    }
+
+    wd, err := os.Getwd()
+    if err != nil {
+        return err
+    }
+    err = profile.Download(path.Join(wd, insta.SUser.Username), insta.SUser.Username)
+    if err != nil {
+        return err
+    }
+
+    return nil
+}
+
+func (insta *Instagram) checkPrivate () bool {
+    isPrivate :=  insta.SUser.IsPrivate
+    return isPrivate
 }
