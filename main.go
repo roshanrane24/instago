@@ -15,20 +15,14 @@ var (
     // Flags declaration for CLI
     username = flag.String("u", "", "Login Username")
     password = flag.String("p", "", "Login Password")
-    target = flag.String("t", "", "Username")
     highlights = flag.Bool("highlights", false, "Download User Highlights")
     stories = flag.Bool("stories", false, "Download User Stories")
-    caption = flag.Bool("caption", false, "Download User Post Captions")
-    audio = flag.Bool("audio", false, "Download Audio for User's Video Post")
-    bio = flag.Bool("bio", false, "Download User's Bio")
-    followers = flag.Bool("followers", false, "Download User's Follower List")
-    following = flag.Bool("following", false, "Download User's Following List")
-    tag = flag.Bool("tag", false, "Download Post from User's Tagged List")
-
+    feed = flag.Bool("feed", false, "Download User Feed Post")
 )
 
 func main() {
     flag.Parse()
+    target := &flag.Args()[0]
 
     // Waitgroup
     wg := &sync.WaitGroup{}
@@ -50,8 +44,19 @@ func main() {
         return
     }
     defer insta.InstaLogout()
-    insta.SearchUser(*target)
+    err = insta.SearchUser(*target)
+    if err != nil {
+        log.Fatalln("User", target, "Not Found.\n", err)
+        return
+    }
 
+    // Profile Picture
+    err = insta.GetProfilePic()
+    if err != nil {
+        log.Println("Failed to Download Profile Picture")
+    }
+
+    // Highlights
     if *highlights {
         wg.Add(1)
         go func(wg *sync.WaitGroup) {
@@ -59,13 +64,42 @@ func main() {
             err := insta.DownloadHighlights()
             if err != nil {
                 log.Println(err)
+                log.Println("Error While Downloading Highlights.")
             }
             log.Println("Highlights <<<")
             wg.Done()
         }(wg)
     }
 
-    //insta.GetProfilePic()
+    // Stories
+    if *stories {
+        wg.Add(1)
+        go func(wg *sync.WaitGroup) {
+            log.Println(">>> Stories")
+            err := insta.DownloadStories()
+            if err != nil {
+                log.Println(err)
+                log.Println("Error While Downloading Stories.")
+            }
+            log.Println("Stories <<<")
+            wg.Done()
+        }(wg)
+    }
+
+    // Feed
+    if *feed {
+        wg.Add(1)
+        go func(wg *sync.WaitGroup) {
+            log.Println(">>> Feed")
+            err := insta.DownloadStories()
+            if err != nil {
+                log.Println(err)
+                log.Println("Error While Downloading Feed.")
+            }
+            log.Println("Feed <<<")
+            wg.Done()
+        }(wg)
+    }
 
     wg.Wait()
 }
