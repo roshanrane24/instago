@@ -17,6 +17,7 @@ type Downloader interface {
 
 // Media Downloader
 func (m *Media) Download(folder, file string) (error, string) {
+    f := ""
     switch m.MediaType {
     case "image":
         err, f := downloadMedia(m.URL, folder, file, ".jpg")
