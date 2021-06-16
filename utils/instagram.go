@@ -151,7 +151,7 @@ func (insta *Instagram) GetProfilePic() error {
     if err != nil {
         return err
     }
-    err = profile.Download(path.Join(wd, insta.SUser.Username), insta.SUser.Username)
+    err, _ = profile.Download(path.Join(wd, insta.SUser.Username), insta.SUser.Username)
     if err != nil {
         return err
     }
