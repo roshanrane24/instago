@@ -16,23 +16,39 @@ type (
 
 func (insta *Instagram) getFeed() {
     feed := insta.SUser.Feed()
-    feed.Next()
 
-    for i := range feed.Items {
-        image := &Media{
-            URL: feed.Items[i].Images.GetBest(),
-            MediaType: "image",
-        }
-        insta.Feed.Media = append(insta.Feed.Media, *image)
+    feedMedia := &FeedMedia{}
+    for feed.Next() {
+        for i := range feed.Items {
+            if len(feed.Items[i].Images.Versions) > 0 {
+                image := Media{
+                    URL: feed.Items[i].Images.GetBest(),
+                    MediaType: "image",
+                }
+                feedMedia.Media = append(feedMedia.Media, image)
+            } else {
+                for ic := range feed.Items[i].CarouselMedia {
+                    image := Media{
+                        URL: feed.Items[i].CarouselMedia[ic].Images.GetBest(),
+                        MediaType: "image",
+                    }
+                    feedMedia.Media = append(feedMedia.Media, image)
+                }
+            }
+            
 
-        for is := range feed.Items[i].Videos {
-        video := &Media{
-            URL: feed.Items[i].Videos[is].URL,
-            MediaType: "video",
-        }
-        insta.Feed.Media = append(insta.Feed.Media, *video)
+            if len(feed.Items[i].Videos) > 0 {
+                for iv := range feed.Items[i].Videos {
+                video := Media{
+                    URL: feed.Items[i].Videos[iv].URL,
+                    MediaType: "video",
+                }
+                feedMedia.Media = append(feedMedia.Media, video)
+                }
+            }
         }
     }
+    insta.Feed = feedMedia
 }
 
 func (insta *Instagram) DownloadFeed() error {
@@ -40,15 +56,14 @@ func (insta *Instagram) DownloadFeed() error {
 
     insta.getFeed()
 
-
     cwd, _ := os.Getwd()
-    feedRoot := path.Join(cwd, *&insta.SUser.Username, "Stories")
+    feedRoot := path.Join(cwd, *&insta.SUser.Username, "Feed")
     err = CreateFolder(feedRoot)
     if err != nil {
         return err
     }
 
-    noFd := len(insta.Stories.Media)
+    noFd := len(insta.Feed.Media)
     log.Println("[Feed]: Found", noFd, "Feed Medias.")
 
     for i := range insta.Feed.Media {
