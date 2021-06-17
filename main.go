@@ -15,6 +15,7 @@ var (
     // Flags declaration for CLI
     username = flag.String("u", "", "Login Username")
     password = flag.String("p", "", "Login Password")
+    all = flag.Bool("all", false, "Download All Media")
     highlights = flag.Bool("highlights", false, "Download User Highlights")
     stories = flag.Bool("stories", false, "Download User Stories")
     feed = flag.Bool("feed", false, "Download User Feed Post")
@@ -29,6 +30,10 @@ func main() {
     } else {
         log.Println("Please provide target username") 
         return
+    }
+
+    if *all {
+        stories, feed, highlights = all, all, all
     }
 
     // Waitgroup
@@ -98,7 +103,7 @@ func main() {
         wg.Add(1)
         go func(wg *sync.WaitGroup) {
             log.Println(">>> Feed")
-            err := insta.DownloadStories()
+            err := insta.DownloadFeed()
             if err != nil {
                 log.Println(err)
                 log.Println("Error While Downloading Feed.")
