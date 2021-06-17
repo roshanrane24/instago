@@ -41,6 +41,4 @@ go install
 
 *OR*
 
-Download Binaries
-
-* [Linux](https://github.com/roshanrane24/instago/releases)
+[Download Binaries](https://github.com/roshanrane24/instago/releases)
