@@ -35,6 +35,8 @@ Manual Installation
 
 ```
 git clone 'https://github.com/roshanrane24/instago.git'
+go mod download github.com/ahmdrz/goinsta/v2
+go mod download github.com/tcnksm/go-input
 go build
 go install
 ```
