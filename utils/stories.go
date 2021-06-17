@@ -18,24 +18,25 @@ type (
 
 func (insta *Instagram) getStories() error {
     stories := insta.SUser.Stories()
-    stories.Next()
     storiesMedia := &StoryMedia{
         Title: stories.Title,
     }
 
-    for i := range stories.Items {
-        image := Media{
-            URL: stories.Items[i].Images.GetBest(),
-            MediaType: "image",
-        }
-        storiesMedia.Media = append(storiesMedia.Media, image)
-
-        for is := range stories.Items[i].Videos {
-            video := Media{
-                URL: stories.Items[i].Videos[is].URL,
-                MediaType: "video",
+    for stories.Next() {
+        for i := range stories.Items {
+            image := Media{
+                URL: stories.Items[i].Images.GetBest(),
+                MediaType: "image",
             }
-            storiesMedia.Media = append(storiesMedia.Media, video)
+            storiesMedia.Media = append(storiesMedia.Media, image)
+
+            for is := range stories.Items[i].Videos {
+                video := Media{
+                    URL: stories.Items[i].Videos[is].URL,
+                    MediaType: "video",
+                }
+                storiesMedia.Media = append(storiesMedia.Media, video)
+            }
         }
     }
     insta.Stories = storiesMedia
