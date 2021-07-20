@@ -24,6 +24,7 @@ type(
         Highlights []HighlightMedia
         Stories *StoryMedia
         Feed *FeedMedia
+        Tagged *TaggedMedia
     }
 
    Media struct {

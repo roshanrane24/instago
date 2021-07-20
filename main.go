@@ -19,6 +19,7 @@ var (
     highlights = flag.Bool("highlights", false, "Download User Highlights")
     stories = flag.Bool("stories", false, "Download User Stories")
     feed = flag.Bool("feed", false, "Download User Feed Post")
+    tagged = flag.Bool("tagged", false, "Download User Tagged Post")
 
     target *string
 )
@@ -109,6 +110,20 @@ func main() {
                 log.Println("Error While Downloading Feed.")
             }
             log.Println("Feed <<<")
+            wg.Done()
+        }(wg)
+    }
+
+    if *tagged {
+        wg.Add(1)
+        go func(wg *sync.WaitGroup) {
+            log.Println(">>> Tagged")
+            err := insta.DownloadTagged()
+            if err != nil {
+                log.Println(err)
+                log.Println("Error While Downloading Tagged Media.")
+            }
+            log.Println("Tagged <<<")
             wg.Done()
         }(wg)
     }
